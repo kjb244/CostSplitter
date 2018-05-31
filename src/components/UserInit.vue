@@ -23,7 +23,8 @@
                     <input type="text" placeholder="for what" :disabled="cost.disabled" v-model="cost.what"/>
                   </div>
                   <div class="col-sm-12 mt-2">
-                    <input type="text" placeholder="amount" :disabled="cost.disabled" v-model="cost.amount"/>
+                    <currencyinput :currencyprops="currencyProps" :disabled="cost.disabled" v-model="cost.amount"></currencyinput>
+
                   </div>
                   <div class="col-sm-12 mt-2">
                     <div class="checkbox-wrapper" v-for="(payee, index3) in cost.payees">
@@ -49,13 +50,24 @@
         </div>
       </div>
     </div>
+    <div class="row input mt-4" v-show="arrNames.length">
+      <div class="col-sm-12">
+        <button class="btn btn-primary" v-on:click="calculateCosts()">Calculate Costs</button>
+      </div>
+    </div>
   </div>
 </template>
 
 
 <script>
+  import currencyinput from './CurrencyInput.vue';
+  import utils from'../utils/Utils';
+
   export default {
     name: 'userinit',
+    components: {
+      currencyinput
+    },
     props: {
 
     },
@@ -63,7 +75,11 @@
       return{
         commaNames: '',
         arrNames: [],
-        payeeModel: [[[]]]
+        payeeModel: [[[]]],
+        currencyProps: {
+          placeholder: 'Enter amount',
+          value: ''
+        }
       }
     },
     methods: {
@@ -134,6 +150,10 @@
         if(index > -1){
           costs[index].disabled = !enabled;
         }
+      },
+      calculateCosts: function(){
+        utils.vueStore.setStore('calculateCosts', {'arrNames': this.arrNames, 'payeeModel':  this.payeeModel});
+        window.location.hash = '#/calculate';
       }
 
     },
@@ -173,6 +193,7 @@
   input{
     text-indent: 10px;
   }
+
 
 
 </style>

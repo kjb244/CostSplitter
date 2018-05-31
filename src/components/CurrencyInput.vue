@@ -1,7 +1,6 @@
 <template>
-  <div class="parent-currency-wrapper">
-    <input type="text" v-on:input="valueChange($event)" :placeholder="currencyprops.placeholder" v-on:blur="valueBlur($event)" >
-  </div>
+  <input data-currency-input type="text" v-on:input="valueChange()" v-on:blur="valueBlur()" :placeholder="currencyprops.placeholder" v-model="inputModel" >
+
 </template>
 
 
@@ -14,19 +13,23 @@
         inputModel: this.currencyprops.value || '',
       }
     },
+    watch: {
+      inputModel(val){
+        this.$emit('input', val);
+      }
+    },
     methods: {
 
-      valueBlur: function(e){
-        const target = e.target;
-        if(target.value.includes('.')){
-          let parts = target.value.split('.');
+      valueBlur: function(){
+        const value = this.inputModel;
+        if(value.includes('.')){
+          let parts = value.split('.');
           parts[1] = this.padZeros(parts[1]);
-          target.value = `${parts[0]}.${parts[1]}`;
+          this.inputModel = `${parts[0]}.${parts[1]}`;
         }
       },
-      valueChange: function(e){
-        const target = e.target;
-        target.value = this.currencyRules(target.value);
+      valueChange: function(){
+        this.inputModel =  this.currencyRules(this.inputModel);
       },
       currencyRules: function(value){
         let valu = value || '';
