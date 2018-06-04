@@ -69,7 +69,7 @@
           },{});
         ccVal.costs.map((cost, j) => {
           const people = payeeModel[i][j].length + 1;
-          const value = Math.round(cost.amount/people,2);
+          const value = Math.round(cost.amount.replace(/,/g,'')/people,2);
           cost.payees.map((payee) => {
            if(payeeModel[i][j].includes(payee)){
              ccAccum[currName].payees[payee] = ccAccum[currName].payees[payee] + value;
@@ -85,7 +85,7 @@
         finalObj[name].owes = Object.assign({},finalObj[name].payees);
         Object.keys(finalObj[name].payees).map((owe) => {
           const owesMasterAmt = finalObj[name].payees[owe];
-          const masterOwesAmt = finalObj[owe].payees[name] || 0;
+          const masterOwesAmt = finalObj[owe].payees[name] || '0';
           if(masterOwesAmt <= owesMasterAmt){
             finalObj[name].owes[owe] = 0;
           }

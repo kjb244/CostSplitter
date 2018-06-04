@@ -31,7 +31,7 @@
                       <input type="checkbox" :id="'checkbox' + payee + index + index2" :value="payee" v-model="payeeModel[index][index2]">
                       <label :for="'checkbox' + payee + index + index2">{{payee}}</label>
 
-                    </div>{{payeeModel}}
+                    </div>
 
                   </div>
                 </div>
