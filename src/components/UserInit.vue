@@ -61,7 +61,8 @@
 
 <script>
   import currencyinput from './CurrencyInput.vue';
-  import utils from'../utils/Utils';
+  import utils from '../utils/Utils';
+  import firebase from 'firebase'
 
   export default {
     name: 'userinit',
@@ -83,8 +84,19 @@
       }
     },
     methods: {
+      dbAddNames: function(commaNamesArr){
+        const db = firebase.database();
+        const urlKey = this.$route.query.urlKey;
+        db.ref().child('/master/urlKeyMap/' + urlKey).set({users: commaNamesArr.map(e => e.trim())});
+        const map = commaNamesArr.reduce((accum,val) => {
+          accum[val.trim()] = {costs: false};
+          return accum;
+        },{});
+        db.ref().child('/master/costMap/' + urlKey).set(map);
+      },
       namesToArray: function(){
         const commaNamesArr = this.commaNames.split(',');
+        this.dbAddNames(commaNamesArr);
         this.arrNames = commaNamesArr.map((e,i) =>{
           this.payeeModel.push([]);
           return {
@@ -158,6 +170,39 @@
 
     },
     created: function(){
+      let db = firebase.database();
+      const urlKey = this.$route.query.urlKey;
+      const initalObj = {urlKeys: {[urlKey]:''},
+                        urlKeyMap: {[urlKey]:
+                                      { users: false}},
+                        costMap: {[urlKey]: false}};
+
+      db.ref('master').once('value', snapshot => {
+        //if we don't have master node then create
+        if(!snapshot.val()){
+          db.ref('master/').update(initalObj);
+        }
+        //if we don't have key then add it
+        else{
+          db.ref('master').child('urlKeys').once('value', snapshot2 => {
+            const urlKeys = (snapshot2.val() || {});
+            if(urlKeys && !(urlKey in urlKeys)){
+              db.ref().child('/master/urlKeys/' + urlKey).set(false);
+              db.ref().child('/master/urlKeyMap/' + urlKey).set({users: false});
+              db.ref().child('/master/costMap/' + urlKey).set(false);
+            }
+            //if we're here then we have data for this urlKey so populate model
+            else {
+              const node = snapshot.val();
+              this.commaNames = node.urlKeyMap[urlKey].users.join(',');
+
+
+            }
+
+          })
+        }
+      })
+
 
     },
     computed:{

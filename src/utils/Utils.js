@@ -19,6 +19,17 @@ class Utils{
 
   }
 
+  randomString = (size) => {
+    size = size || 10;
+    const charArr = 'abcdefghijklmnopqrstuvwzyz0123456789'.split('');
+    let rtnStr = '';
+    for(let i= 0; i<size; i++){
+      rtnStr += charArr[Math.floor(Math.random() * charArr.length)];
+    }
+    return rtnStr;
+
+  }
+
 
 
 
