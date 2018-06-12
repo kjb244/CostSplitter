@@ -23,12 +23,12 @@
                     <input type="text" placeholder="for what" :disabled="cost.disabled" v-model="cost.what" v-on:change="dbOnChange('what',index,index2,cost)"/>
                   </div>
                   <div class="col-sm-12 mt-2">
-                    <currencyinput :currencyprops="{placeholder: currencyProps.placeholder, value: cost.amount}" :disabled="cost.disabled"  v-model="cost.amount" v-on:input="test"></currencyinput>
+                    <currencyinput :currencyprops="{placeholder: currencyProps.placeholder, value: cost.amount, indexes: [index,index2]}" :disabled="cost.disabled"  v-model="cost.amount" v-on:valueMap="currencyNodeChange"></currencyinput>
 
                   </div>
                   <div class="col-sm-12 mt-2">
                     <div class="checkbox-wrapper" v-for="(payee, index3) in cost.payees">
-                      <input type="checkbox" :id="'checkbox' + payee + index + index2" :value="payee" v-model="payeeModel[index][index2]">
+                      <input type="checkbox" :id="'checkbox' + payee + index + index2" :value="payee" v-on:change="dbOnChangeCB(index, index2, payee)" v-model="payeeModel[index][index2]">
                       <label :for="'checkbox' + payee + index + index2">{{payee}}</label>
 
                     </div>
@@ -85,14 +85,56 @@
     },
     watch: {
 
-
-
-
     },
     methods: {
-      test: function(val){
-        console.log(val);
+      dbRemoveCostNode: function(index){
+        const db = firebase.database();
+        const urlKey = this.$route.query.urlKey;
+        const name = this.arrNames[index].name;
+        const idxToRemove = this.arrNames[index].costs.length;
+        if(idxToRemove>0){
+          db.ref().child(`/master/costMap/${urlKey}/${name}/costs`).child(idxToRemove).remove();
+
+        }
+        else{
+          db.ref().child(`/master/costMap/${urlKey}/${name}/costs`).child(idxToRemove).set(false);
+
+        }
+
       },
+      dbOnChangeCB: function(index, index2, payee){
+        const db = firebase.database();
+        const urlKey = this.$route.query.urlKey;
+        const name = this.arrNames[index].name;
+        const checked = this.payeeModel[index][index2].includes(payee) ? true: false;
+        const qs = `/master/costMap/${urlKey}/${name}/costs/${index2}`;
+
+        db.ref().child(qs).once('value', (snapshot) => {
+          const payees = snapshot.child('payees');
+          if(!payees.val() && checked){
+            snapshot.ref.update({payees: {[payee]: false}});
+          }
+          else if (payees.val() && !checked){
+            const name = payees.child(payee);
+            if(name !== undefined){
+              snapshot.ref.child('payees').child(payee).remove();
+            }
+          }
+
+        });
+      },
+
+      dbAddUrlKeys: function(){
+        const db = firebase.database();
+        const urlKey = this.$route.query.urlKey;
+        db.ref().child('/master/urlKeyMap/' + urlKey).set({users: this.arrNames.map( e => e.name)});
+        const obj =  this.arrNames.reduce((accum,e) => {
+          accum[e.name]=false;
+          return accum;},{}
+          );
+        db.ref().child(`/master/costMap/${urlKey}`).set(obj);
+      },
+
       dbOnChange: function(type, index, index2, cost){
         const db = firebase.database();
         const urlKey = this.$route.query.urlKey;
@@ -124,6 +166,11 @@
 
         db.ref().child('/master/costMap/' + urlKey).set(map);
       },
+      currencyNodeChange: function(obj){
+        const indexes = obj.indexes;
+        const value = obj.value;
+        this.dbOnChange('amount',indexes[0], indexes[1], {amount: value});
+      },
       namesToArray: function(){
         const commaNamesArr = this.commaNames.split(',');
         this.arrNames = commaNamesArr.map((e,i) =>{
@@ -134,6 +181,7 @@
             costs: [this.addBaseCostObject(e.trim())]
           }
         });
+        this.dbAddUrlKeys();
 
       },
       addCost: function(index){
@@ -147,7 +195,8 @@
         this.arrNames[index].costs.splice(-1);
         let length = this.arrNames[index].costs.length;
         this.enableDisableByIndex(this.arrNames[index].costs, --length, true);
-        this.removePayeeModalArr(index);
+        this.removePayeeModelArr(index);
+        this.dbRemoveCostNode(index);
       },
       addBaseCostObject: function(name){
         const payees = this.commaNames.split(',')
@@ -183,8 +232,9 @@
         }
       },
 
-      removePayeeModalArr: function(index){
+      removePayeeModelArr: function(index){
         const costsArr = this.arrNames[index].costs;
+        this.payeeModel[index][costsArr.length] = [];
       },
 
       enableDisableByIndex: function(costs, index, enabled){
@@ -205,7 +255,7 @@
       let db = firebase.database();
       const urlKey = this.$route.query.urlKey;
       const self = this;
-      const createdDt = new Date();
+      let createdDt = null;
 
       init();
 
@@ -234,7 +284,6 @@
 
       function init() {
         const initialObj = {
-          urlKeys: {[urlKey]: ''},
           urlKeyMap: {
             [urlKey]:
               {users: false}
@@ -249,29 +298,40 @@
           }
           //if we don't have key then add it
           else {
-            db.ref('master').child('urlKeys').once('value', snapshot2 => {
-              const urlKeys = (snapshot2.val() || {});
-              if (urlKeys && !(urlKey in urlKeys)) {
-                db.ref().child('/master/urlKeys/' + urlKey).set(false);
+            db.ref('master').child('urlKeyMap').once('value', snapshot2 => {
+              const urlKeyMap = (snapshot2.val() || {});
+              if (urlKeyMap && !(urlKey in urlKeyMap)) {
                 db.ref().child('/master/urlKeyMap/' + urlKey).set({users: false});
                 db.ref().child('/master/costMap/' + urlKey).set(false);
               }
               //if we're here then we have data for this urlKey so populate model
               else {
+                createdDt = new Date();
                 const node = snapshot.val();
                 self.commaNames = node.urlKeyMap[urlKey].users.join(',');
                 const costMapUsers = node.costMap[urlKey];
                 Object.keys(costMapUsers).map((e, i) => {
                   self.payeeModel.push([]);
                   const entry = costMapUsers[e];
-                  const costArr = entry.costs.map((e, i2) => {
-                    self.payeeModel[i][i2] = e.payeeArr;
-                    return Object.assign({}, e, {disabled: false});
-                  });
+                  let costArr;
+                  //if the entry costs node is false then make costArr a blank array
+                  if(entry.costs && entry.costs.includes(false)) {
+                    costArr = [];
+                  }
+                  else {
+                    costArr = entry.costs.map((e, i2) => {
+                      self.payeeModel[i][i2] = Object.keys(e.payees);
+                      return Object.assign({}, {
+                        amount: e.amount,
+                        what: e.what,
+                        payees: Object.keys(e.payees)
+                      }, {disabled: false});
+                    });
+                  }
                   const obj = {name: e, id: e.trim().replace(/\s+/g, '') + i, costs: costArr};
                   self.arrNames.push(obj);
                 });
-                addListeners();
+                //addListeners();
               }
             })
           }
