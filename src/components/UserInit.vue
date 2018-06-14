@@ -274,7 +274,7 @@
         const currObj = self.arrNames.find(e => e.name === name);
         let payees = self.arrNames.map(e => e.name).filter((e) => e !== name);
         //someone added an element to costs
-        if(currObj.costs.length < val.costs.length){
+        if(val.costs.length > currObj.costs.length){
           self.payeeModel[firstPos].push([]);
           self.payeeModel[firstPos][currObj.length] = Object.keys(val.costs.payees || []);
           const newNode = val.costs.pop();
@@ -283,6 +283,34 @@
             {amount: '', what: '', disabled: false, payees: payees},
             newNode);
           self.arrNames[firstPos].costs.push(finalNode);
+        }
+        //someone removed an element from costs
+        else if (val.costs.length < currObj.costs.length){
+          self.payeeModel[firstPos].pop();
+          self.arrNames[firstPos].costs.splice(-1);
+        }
+        //someone changed a property in the cost array
+        else if(Array.isArray(val.costs)){
+          val.costs.map((cost,i) => {
+            const amountDb = cost.amount || '';
+            const payeesDb = Object.keys(cost.payees || {});
+            const whatDb = cost.what || '';
+
+            const amountCurr = currObj.costs[i].amount || '';
+            let payeesCurr = self.payeeModel[firstPos][i];
+            const whatCurr = currObj.costs[i].what || '';
+
+            if(amountDb !== amountCurr){
+              currObj.costs[i].amount = amountDb;
+            }
+            if(whatDb !== whatCurr){
+              currObj.costs[i].what = whatDb;
+            }
+            if (JSON.stringify(payeesDb.sort()) !== JSON.stringify(payeesCurr.sort())){
+              console.log('changed array');
+            }
+
+          });
         }
 
       }
