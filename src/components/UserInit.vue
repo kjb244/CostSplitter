@@ -270,7 +270,7 @@
       }
 
       function compareUpdates(val, name){
-        const firstPos = self.arrNames.map((e,i) => {if (e.name === name) return i;})[0];
+        const firstPos = self.arrNames.findIndex(e => e.name === name);
         const currObj = self.arrNames.find(e => e.name === name);
         let payees = self.arrNames.map(e => e.name).filter((e) => e !== name);
         //someone added an element to costs
@@ -299,16 +299,38 @@
             const amountCurr = currObj.costs[i].amount || '';
             let payeesCurr = self.payeeModel[firstPos][i];
             const whatCurr = currObj.costs[i].what || '';
-
+            //changed amount
             if(amountDb !== amountCurr){
               currObj.costs[i].amount = amountDb;
             }
+            //changed what
             if(whatDb !== whatCurr){
               currObj.costs[i].what = whatDb;
             }
-            if (JSON.stringify(payeesDb.sort()) !== JSON.stringify(payeesCurr.sort())){
-              console.log('changed array');
+            //changed payees array
+            const deepClonePayeesCurr = JSON.parse(JSON.stringify(payeesCurr));
+
+            //added one in the db
+            if(payeesDb.length > payeesCurr.length){
+              self.payeeModel[firstPos][i] = payeesDb;
+              //for some reason this wasn't triggering so needed to do a force update
+              self.$forceUpdate();
+
             }
+            //removed one in the db
+            if (payeesDb.length < payeesCurr.length){
+              payeesCurr.filter((e) => {
+                if(!payeesDb.includes(e)){
+                  return e;
+                }
+              }).map((e) => {
+                const idx = payeesCurr.indexOf(e);
+                if(idx > -1) payeesCurr.splice(idx,1);
+                //for some reason this wasn't triggering so needed to do a force update
+                self.$forceUpdate();
+              })
+            }
+
 
           });
         }
