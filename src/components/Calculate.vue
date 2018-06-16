@@ -10,7 +10,7 @@
        </thead>
        <tbody>
         <tr v-for="owe in rec.owes">
-          <td> {{owe.name | upperCaseFirstLetterWord}}: ${{owe.amount}}</td>
+          <td> {{owe.name | upperCaseFirstLetterWord}}: ${{owe.amount | formatCurrency}}</td>
         </tr>
       </tbody>
      </table>
@@ -24,6 +24,7 @@
 
 <script>
   import utils from'../utils/Utils';
+  import firebase from 'firebase';
 
   export default {
     name: 'calculate',
@@ -42,6 +43,61 @@
 
     },
     created: function(){
+      let db = firebase.database();
+      const urlKey = this.$route.query.urlKey;
+      const self = this;
+
+      function constructModel(inputData){
+        let finalObj = {};
+        let names = Object.keys(inputData);
+        finalObj = names.reduce((ccAccum, ccVal, i)=>{
+          const currName = ccVal;
+          const currNode = inputData[currName];
+          ccAccum[currName] = {};
+          ccAccum[currName].payees = names.filter(e => e !== currName)
+            .reduce((accum, val) => {
+              accum[val] = 0;
+              return accum;
+            },{});
+          currNode.costs.map((cost, j) => {
+            const payees = Object.keys(cost.payees || {});
+            const people = payees.length + 1;
+            const value = Math.round(cost.amount.replace(/,/g,'')/people,2);
+            payees.map((payee) => {
+              ccAccum[currName].payees[payee] = ccAccum[currName].payees[payee] + value;
+            })
+          });
+          return ccAccum;
+
+
+        },{});
+
+        self.costArr = names.map((name, i) => {
+          finalObj[name].owes = Object.assign({},finalObj[name].payees);
+          Object.keys(finalObj[name].payees).map((owe) => {
+            const owesMasterAmt = finalObj[name].payees[owe];
+            const masterOwesAmt = finalObj[owe].payees[name] || '0';
+            if(masterOwesAmt <= owesMasterAmt){
+              finalObj[name].owes[owe] = 0;
+            }
+            else{
+              finalObj[name].owes[owe] = masterOwesAmt - owesMasterAmt;
+            }
+          });
+          const rtn =  {name: name, owes: Object.keys(finalObj[name].owes)
+            .map((e) => {
+              return { name: e, amount: finalObj[name].owes[e]}
+            })
+          };
+          return rtn;
+        });
+
+      }
+
+      db.ref(`master/costMap/${urlKey}`).once('value', (snapshot) => {
+        const data = snapshot.val();
+        constructModel(data);
+      });
 
     },
     computed:{
@@ -51,56 +107,22 @@
       upperCaseFirstLetterWord: function(word){
         word = word || '';
         return word.substring(0,1).toUpperCase() + word.substring(1);
+      },
+      formatCurrency: function(curr){
+
+        curr = (curr + '').replace(/,/g,'');
+        const parts = curr.split('.');
+        const partsDecimal = parts.length > 1 ? '.' + parts[1] : '';
+        return parts[0].split('').reverse().map((e,i) => {
+          if(i>0 && i%3 === 0){
+            return e + ',';
+          }
+          return e;
+        }).reverse().join('') + partsDecimal;
       }
     }        ,
     mounted: function(){
-      const calculateCosts = utils.vueStore.getStore('calculateCosts');
-      if(!calculateCosts) return false;
-      let finalObj = {};
-      let payeeModel = calculateCosts.payeeModel;
-      let names = calculateCosts.arrNames.map((e) => e.name);
-      finalObj = calculateCosts.arrNames.reduce((ccAccum, ccVal, i)=>{
-        const currName = names[i];
-        ccAccum[currName] = {};
-        ccAccum[currName].payees = names.filter((name) => name !== currName)
-          .reduce((accum, val) => {
-            accum[val] = 0;
-            return accum;
-          },{});
-        ccVal.costs.map((cost, j) => {
-          const people = payeeModel[i][j].length + 1;
-          const value = Math.round(cost.amount.replace(/,/g,'')/people,2);
-          cost.payees.map((payee) => {
-           if(payeeModel[i][j].includes(payee)){
-             ccAccum[currName].payees[payee] = ccAccum[currName].payees[payee] + value;
-           }
-          })
-        });
-        return ccAccum;
 
-
-      },{});
-
-      this.costArr = names.map((name, i) => {
-        finalObj[name].owes = Object.assign({},finalObj[name].payees);
-        Object.keys(finalObj[name].payees).map((owe) => {
-          const owesMasterAmt = finalObj[name].payees[owe];
-          const masterOwesAmt = finalObj[owe].payees[name] || '0';
-          if(masterOwesAmt <= owesMasterAmt){
-            finalObj[name].owes[owe] = 0;
-          }
-          else{
-            finalObj[name].owes[owe] = masterOwesAmt - owesMasterAmt;
-          }
-        });
-        const rtn =  {name: name, owes: Object.keys(finalObj[name].owes)
-          .map((e) => {
-            return { name: e, amount: finalObj[name].owes[e]}
-          })
-        };
-        return rtn;
-      });
-      console.log(this.costArr);
     }
   }
 </script>

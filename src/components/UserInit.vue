@@ -232,6 +232,7 @@
       calculateCosts: function(){
 
         this.dbRemoveAllListeners();
+        this.$router.replace({name: 'calculate', query: {urlKey: this.$route.query.urlKey}});
 
       }
 
@@ -308,8 +309,6 @@
               currObj.costs[i].what = whatDb;
             }
             //changed payees array
-            const deepClonePayeesCurr = JSON.parse(JSON.stringify(payeesCurr));
-
             //added one in the db
             if(payeesDb.length > payeesCurr.length){
               self.payeeModel[firstPos][i] = payeesDb;
