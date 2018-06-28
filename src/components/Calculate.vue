@@ -2,7 +2,8 @@
  <div class="container">
    <div class="row">
     <div class="col-sm-12">
-     <table v-for="rec in costArr" class="table mt-5">
+      <a href="javascript:void(0)" v-on:click="back()">Go Back</a>
+      <table v-for="rec in costArr" class="table mt-5">
        <thead>
         <tr>
           <th scope="col">{{rec.name | upperCaseFirstLetterWord}} Owes</th>
@@ -13,7 +14,7 @@
           <td> {{owe.name | upperCaseFirstLetterWord}}: ${{owe.amount | formatCurrency}}</td>
         </tr>
       </tbody>
-     </table>
+      </table>
     </div>
    </div>
 
@@ -38,7 +39,9 @@
 
     },
     methods: {
-
+      back: function(){
+        this.$router.replace({name: 'users', query: {urlKey: this.$route.query.urlKey}});
+      }
 
 
     },

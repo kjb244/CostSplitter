@@ -2,32 +2,19 @@
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-sm-12 col-md-8 col-lg-8">
-        <nav>
-          <div class="nav nav-tabs" id="nav-tab" role="tablist">
-            <a class="nav-item nav-link active" id="nav-login-tab" data-toggle="tab" href="#nav-login" role="tab" aria-controls="nav-login" aria-selected="true">Login</a>
-            <a class="nav-item nav-link" id="nav-signup-tab" data-toggle="tab" href="#nav-signup" role="tab" aria-controls="nav-signup" aria-selected="false">Signup</a>
 
-          </div>
-        </nav>
-        <div class="tab-content" id="nav-tabContent">
-          <div class="tab-pane fade show active mt-2" id="nav-login" role="tabpanel" aria-labelledby="nav-login-tab">
-            <input type="text" class="mt-2" placeholder="email" v-model="login.username"/>
-            <input type="password" class="mt-2" placeholder="password" v-model="login.password"/>
-            <input type="text" class="mt-2" placeholder="(optional) - enter unique key" v-model="login.url"/>
-            <button class="btn btn-primary btn-block mt-2" v-on:click="loginSubmit()" :disabled="!(login.username.length  && login.password.length) ">Login</button>
-            <p class="mt-2">{{login.message}}</p>
-          </div>
-          <div class="tab-pane fade" id="nav-signup" role="tabpanel" aria-labelledby="nav-signup-tab">
-            <div class="tab-pane fade show active mt-2" id="nav-signup" role="tabpanel" aria-labelledby="nav-signup-tab">
-              <input type="text" class="mt-2" placeholder="email" v-model="signup.username"/>
-              <input type="password" class="mt-2" placeholder="password" v-model="signup.password"/>
-              <button class="btn btn-primary btn-block mt-2" v-on:click="signupSubmit()" :disabled="!(signup.username.length  && signup.password.length) ">Signup</button>
-              <p class="mt-2">{{signup.message}}</p>
-            </div>
-
-
-          </div>
+        <div v-show="showPhoneInput" class="phone-input">
+          <phoneinput v-model="phone" :props="{placeholder: 'Enter phone number'}"></phoneinput>
+          <input type="text" class="mt-2" placeholder="(optional) previous url" v-model="previousUrl"/>
+          <button type="button"  class="btn btn-primary mt-2 btn-block"  v-on:click="fbLoginPhone()">Submit</button>
+          <p class="mt-2">Note: authentication is accomplished via text message to reduce the need to remember yet another password</p>
+          <div class="mt-2" id="recaptcha-container"></div>
         </div>
+        <div v-show="!showPhoneInput" class="sms-input">
+          <input type="password" placeholder="enter code provided via text" v-model="code"/>
+          <button type="button"  class="btn btn-primary mt-2 btn-block"  v-on:click="confirmCode()">Submit Code</button>
+        </div>
+
 
       </div>
     </div>
@@ -39,10 +26,14 @@
 
   import firebase from 'firebase'
   import utils from'../utils/Utils'
+  import phoneinput from './PhoneInput.vue';
+  require('font-awesome/css/font-awesome.css');
+
 
   export default {
     name: 'loginsignup',
     components: {
+      phoneinput
 
     },
     props: {
@@ -50,45 +41,52 @@
     },
     data(){
       return{
-        login: {
-          username: '',
-          password: '',
-          url: '',
-          message: ''
-        },
-        signup: {
-          username: '',
-          password: '',
-          message: ''
+        phone: '',
+        code: '',
+        previousUrl: '',
+        test: '',
+        showPhoneInput: true,
+        firebaseData: {
+          recaptchaVerifier: null,
+          confirmationResult: null
         }
       }
     },
     methods: {
-      loginSubmit: function(){
-        this.login.message = '';
-        firebase.auth().signInWithEmailAndPassword(this.login.username, this.login.password).then((user) => {
-          let dbKey = this.login.url;
-          if(!dbKey.length){
+      fbLoginPhone: function(){
+
+
+
+        const appVerifier = this.firebaseData.recaptchaVerifier;
+        firebase.auth().signInWithPhoneNumber('+1' +this.phone, appVerifier)
+          .then( (confirmationResult) => {
+            // SMS sent. Prompt user to type the code from the message, then sign the
+            // user in with confirmationResult.confirm(code).
+            this.showPhoneInput = false;
+            this.firebaseData.confirmationResult = confirmationResult;
+          }).catch(function (error) {
+            console.log(error);
+            // Error; SMS not sent
+          })
+
+      },
+      confirmCode: function(){
+        this.firebaseData.confirmationResult.confirm(this.code).then( (result) => {
+          // User signed in successfully.
+          let dbKey = this.previousUrl;
+          if(dbKey.length < 16){
             dbKey = utils.randomString(16);
           }
 
+
           this.$router.replace({name: 'users', query: {urlKey: dbKey} } );
-        }).catch((error) => {
-          this.login.message = error.message;
-        })
 
-      },
-      signupSubmit: function(){
-        this.signup.message = '';
-        firebase.auth().createUserWithEmailAndPassword(this.signup.username, this.signup.password).then((user) => {
-          if(user){
-            this.signup.message = 'account created - please login';
-          }
+        }).catch( (error) => {
+          // User couldn't sign in (bad verification code?)
 
-        }).catch((error) =>{
-          this.signup.message = error.message;
-        })
+        });
       }
+
 
     },
     created: function(){
@@ -98,7 +96,15 @@
 
     },
     mounted: function(){
+      this.firebaseData.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        'size': 'normal',
+        'callback': function(response) {
 
+        },
+        'expired-callback': function() {
+
+        }
+      });
     }
   }
 </script>

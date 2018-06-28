@@ -303,10 +303,14 @@
             //changed amount
             if(amountDb !== amountCurr){
               currObj.costs[i].amount = amountDb;
+              //for some reason this wasn't triggering so needed to do a force update
+              self.$forceUpdate();
             }
             //changed what
             if(whatDb !== whatCurr){
               currObj.costs[i].what = whatDb;
+              //for some reason this wasn't triggering so needed to do a force update
+              self.$forceUpdate();
             }
             //changed payees array
             //added one in the db

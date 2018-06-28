@@ -2,7 +2,6 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import UserInit from '@/components/UserInit'
 import Calculate from '@/components/Calculate'
-import Splash from '@/components/Splash'
 import LoginSignup from '@/components/LoginSignup'
 import firebase from 'firebase'
 
@@ -22,7 +21,10 @@ let router = new Router({
     {
       path: '/calculate',
       name: 'calculate',
-      component: Calculate
+      component: Calculate,
+      meta: {
+        requiresAuth: true
+      }
     },
     {
       path: '/users',
