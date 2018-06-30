@@ -6,12 +6,14 @@
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
-    "start": "npm run dev",
+    "start_": "npm run dev",
+    "start": "node server.js",
     "build": "node build/build.js",
-    "postinstall": "webpack --config build/webpack.prod.conf.js --progress --colors"
+    "heroku-postbuild": "npm install --only=dev --no-shrinkwrap && npm run build"
   },
   "dependencies": {
     "bootstrap": "^4.1.1",
+    "express": "^4.16.3",
     "file-loader": "^1.1.11",
     "firebase": "^5.0.4",
     "font-awesome": "^4.7.0",
