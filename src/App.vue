@@ -15,6 +15,9 @@ export default {
 <style lang="scss">
   @import '../node_modules/bootstrap/scss/bootstrap.scss';
 
+  html{
+    overflow-x: hidden;
+  }
   #app{
     display: flex;
   }

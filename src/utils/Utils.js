@@ -30,6 +30,17 @@ class Utils{
 
   }
 
+  goBackLogic = () => {
+    let hash = window.location.hash;
+    if (hash.includes('users')){
+      hash = '/';
+    }
+    else if (hash.includes('calculate')){
+      hash = hash.replace('calculate','users');
+    }
+    window.location.hash = hash;
+  }
+
 
 
 

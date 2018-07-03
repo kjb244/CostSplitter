@@ -2,7 +2,7 @@
  <div class="container">
    <div class="row">
     <div class="col-sm-12">
-      <a href="javascript:void(0)" v-on:click="back()">Go Back</a>
+      <menubar :props="menuProps"></menubar>
       <table v-for="rec in costArr" class="table mt-5">
        <thead>
         <tr>
@@ -26,22 +26,27 @@
 <script>
   import utils from'../utils/Utils';
   import firebase from 'firebase';
+  import menubar from './MenuBar.vue';
 
   export default {
     name: 'calculate',
+    components: {
+      menubar
+    },
     props: {},
     data(){
       return{
-        costArr: []
+        costArr: [],
+        menuProps: {
+          goBackLogic: utils.goBackLogic
+        }
       }
     },
     watch: {
 
     },
     methods: {
-      back: function(){
-        this.$router.replace({name: 'users', query: {urlKey: this.$route.query.urlKey}});
-      }
+
 
 
     },

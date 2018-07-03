@@ -1,6 +1,5 @@
 <template>
   <input data-currency-input type="text" v-on:input="valueChange()" v-on:blur="valueBlur()" :placeholder="currencyprops.placeholder" v-model="inputModel" >
-
 </template>
 
 
@@ -14,8 +13,8 @@
       }
     },
     watch: {
-      inputModel(val){
-        this.$emit('input', val);
+      'currencyprops.value': function(newVal, oldVal){
+        this.inputModel = newVal;
       }
     },
     methods: {

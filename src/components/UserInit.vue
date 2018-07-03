@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    <menubar :props="menuProps"></menubar>
     <div class="row">
       <div class="col-sm-12">
         <div class="input">
@@ -61,6 +62,7 @@
 
 <script>
   import currencyinput from './CurrencyInput.vue';
+  import menubar from './MenuBar.vue';
   import utils from '../utils/Utils';
   import firebase from 'firebase';
 
@@ -68,7 +70,8 @@
   export default {
     name: 'userinit',
     components: {
-      currencyinput
+      currencyinput,
+      menubar
     },
     props: {
 
@@ -80,6 +83,9 @@
         payeeModel: [[[]]],
         currencyProps: {
           placeholder: 'Enter amount',
+        },
+        menuProps: {
+          goBackLogic: utils.goBackLogic
         }
       }
     },
