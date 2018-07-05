@@ -19,30 +19,33 @@ export default {
     overflow-x: hidden;
   }
   #app{
-    display: flex;
+    position: relative;
   }
 
   #app >div{
-    flex: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
   }
 
   .animate-enter-active{
     order: 2;
     animation: left-animation-in 1s linear;
+
   }
 
   .animate-leave-active{
     order: 1;
-    animation: left-animation-out 1s linear;
+    animation: left-animation-out .5s linear;
   }
 
   @keyframes left-animation-out {
-    0%   { margin-left: 0; }
-    100% { margin-left: -100% }
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
   }
 
   @keyframes left-animation-in {
-    0%   { margin-right: -100%; }
-    100% { margin-right: 0; }
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
   }
 </style>

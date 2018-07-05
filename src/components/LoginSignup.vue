@@ -7,7 +7,7 @@
         <div v-show="showPhoneInput" class="phone-input">
           <phoneinput v-model="phone" :props="{placeholder: 'Enter phone number'}"></phoneinput>
           <input type="text" class="mt-2" placeholder="(optional) previous url" v-model="previousUrl"/>
-          <button type="button" :disabled="loading.show"  class="btn btn-primary mt-2 btn-block"  v-on:click="fbLoginPhone()">Submit</button>
+          <button type="button" :disabled="loading.show || phone.length !== 12"  class="btn btn-primary mt-2 btn-block"  v-on:click="fbLoginPhone()">Submit</button>
           <div class="loading-modal mt-3">
             <modaloverlay :modalprops="loading"></modaloverlay>
           </div>

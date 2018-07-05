@@ -29,7 +29,7 @@
                   </div>
                   <div class="col-sm-12 mt-2">
                     <div class="checkbox-wrapper" v-for="(payee, index3) in cost.payees">
-                      <input type="checkbox" :id="'checkbox' + payee + index + index2" :value="payee" v-on:change="dbOnChangeCB(index, index2, payee)" v-model="payeeModel[index][index2]">
+                      <input type="checkbox" :id="'checkbox' + payee + index + index2" :value="payee" v-on:change="dbOnChangeCB(index, index2, payee)" v-model="payeeModel[index][index2]" :disabled="cost.disabled">
                       <label :for="'checkbox' + payee + index + index2">{{payee}}</label>
 
                     </div>
