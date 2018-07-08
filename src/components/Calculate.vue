@@ -2,7 +2,6 @@
  <div class="container">
    <div class="row">
     <div class="col-sm-12">
-      <menubar :props="menuProps"></menubar>
       <table v-for="rec in costArr" class="table mt-5">
        <thead>
         <tr>
@@ -24,22 +23,16 @@
 
 
 <script>
-  import utils from'../utils/Utils';
   import firebase from 'firebase';
-  import menubar from './MenuBar.vue';
 
   export default {
     name: 'calculate',
     components: {
-      menubar
     },
     props: {},
     data(){
       return{
-        costArr: [],
-        menuProps: {
-          goBackLogic: utils.goBackLogic
-        }
+        costArr: []
       }
     },
     watch: {
@@ -70,7 +63,7 @@
           currNode.costs.map((cost, j) => {
             const payees = Object.keys(cost.payees || {});
             const people = payees.length + 1;
-            const value = Math.round(cost.amount.replace(/,/g,'')/people,2);
+            const value = Math.round((cost.amount + '').replace(/,/g,'')/people,2);
             payees.map((payee) => {
               ccAccum[currName].payees[payee] = ccAccum[currName].payees[payee] + value;
             })

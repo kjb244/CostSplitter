@@ -94,7 +94,7 @@
           }
 
 
-          this.$router.replace({name: 'users', query: {urlKey: dbKey} } );
+          this.$router.replace({name: 'people', query: {urlKey: dbKey} } );
 
         }).catch( (error) => {
           // User couldn't sign in (bad verification code?)

@@ -1,30 +1,36 @@
 <template>
   <div id="app">
+    <menubar></menubar>
     <transition name="animate">
       <router-view/>
     </transition>
   </div>
 </template>
 
+
+
 <script>
-export default {
-  name: 'App'
+  import menubar from './components/MenuBar.vue';
+
+
+  export default {
+  name: 'App',
+  components: {
+    menubar
+  },
 }
 </script>
+
 
 <style lang="scss">
   @import '../node_modules/bootstrap/scss/bootstrap.scss';
 
-  html{
-    overflow-x: hidden;
-  }
   #app{
     position: relative;
   }
 
-  #app >div{
+  #app >div + div{
     position: absolute;
-    top: 0;
     left: 0;
   }
 

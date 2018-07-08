@@ -1,14 +1,8 @@
 <template>
   <div class="container">
-    <menubar :props="menuProps"></menubar>
+
     <div class="row">
-      <div class="col-sm-12">
-        <div class="input">
-          <input type="text" placeholder="enter names seperated by commas" v-model="commaNames"/>
-          <br>
-          <button type="button"  class="btn btn-primary mt-2" :disabled="commaNames.length === 0" v-on:click="namesToArray()">Submit</button>
-        </div>
-      </div>
+
       <div class="col-sm-12 mt-4">
         <div id="accordion" v-show="arrNames.length>0">
           <div class="card" v-for="(rec,index) in arrNames">
@@ -42,7 +36,6 @@
                     <button class="btn btn-info" :disabled="rec.costs.length === 0" v-on:click="removeCost(index)">Remove</button>
                   </div>
                 </div>
-
               </div>
 
             </div>
@@ -51,18 +44,12 @@
         </div>
       </div>
     </div>
-    <div class="row input mt-4" v-show="arrNames.length">
-      <div class="col-sm-12">
-        <button class="btn btn-primary" v-on:click="calculateCosts()">Calculate Costs</button>
-      </div>
-    </div>
   </div>
 </template>
 
 
 <script>
   import currencyinput from './CurrencyInput.vue';
-  import menubar from './MenuBar.vue';
   import utils from '../utils/Utils';
   import firebase from 'firebase';
 
@@ -70,15 +57,13 @@
   export default {
     name: 'userinit',
     components: {
-      currencyinput,
-      menubar
+      currencyinput
     },
     props: {
 
     },
     data(){
       return{
-        commaNames: '',
         arrNames: [],
         payeeModel: [[[]]],
         currencyProps: {
@@ -133,16 +118,6 @@
         });
       },
 
-      dbAddUrlKeys: function(){
-        const db = firebase.database();
-        const urlKey = this.$route.query.urlKey;
-        db.ref().child('/master/urlKeyMap/' + urlKey).set({users: this.arrNames.map( e => e.name)});
-        const obj =  this.arrNames.reduce((accum,e) => {
-          accum[e.name]=false;
-          return accum;},{}
-          );
-        db.ref().child(`/master/costMap/${urlKey}`).set(obj);
-      },
 
       dbOnChange: function(type, index, index2, cost){
         const db = firebase.database();
@@ -162,21 +137,10 @@
       currencyNodeChange: function(obj){
         const indexes = obj.indexes;
         const value = obj.value;
+        this.arrNames[indexes[0]].costs[indexes[1]].amount = value;
         this.dbOnChange('amount',indexes[0], indexes[1], {amount: value});
       },
-      namesToArray: function(){
-        const commaNamesArr = this.commaNames.split(',');
-        this.arrNames = commaNamesArr.map((e,i) =>{
-          this.payeeModel.push([]);
-          return {
-            name: e.trim(),
-            id: e.trim().replace(/\s+/g,'') + i,
-            costs: [this.addBaseCostObject(e.trim())]
-          }
-        });
-        this.dbAddUrlKeys();
 
-      },
       addCost: function(index){
         let length = this.arrNames[index].costs.length;
         let costsArr = this.arrNames[index].costs;
@@ -192,8 +156,8 @@
         this.dbRemoveCostNode(index);
       },
       addBaseCostObject: function(name){
-        const payees = this.commaNames.split(',')
-          .map(e => e.trim())
+        const payees = this.arrNames
+          .map(e => e.name.trim())
           .filter(e => e !== name);
         return {
           what: '',
@@ -235,12 +199,7 @@
           costs[index].disabled = !enabled;
         }
       },
-      calculateCosts: function(){
 
-        this.dbRemoveAllListeners();
-        this.$router.replace({name: 'calculate', query: {urlKey: this.$route.query.urlKey}});
-
-      }
 
 
     },
@@ -280,6 +239,10 @@
         const firstPos = self.arrNames.findIndex(e => e.name === name);
         const currObj = self.arrNames.find(e => e.name === name);
         let payees = self.arrNames.map(e => e.name).filter((e) => e !== name);
+
+        val.costs = val.costs.filter(e => e !== false);
+
+
         //someone added an element to costs
         if(val.costs.length > currObj.costs.length){
           self.payeeModel[firstPos].push([]);
@@ -351,85 +314,48 @@
         const prom = callDb();
         prom.then((e) => {
           addListeners();
-        })
+        });
 
-        const initialObj = {
-          urlKeyMap: {
-            [urlKey]:
-              {users: false}
-          },
-          costMap: {[urlKey]: false}
-        };
 
         function callDb(){
           return new Promise((resolve, reject) =>{
-            db.ref('master').once('value', snapshot => {
-              //if we don't have master node then create
-              if (!snapshot.val()) {
-                db.ref('master/').update(initialObj).then((e) => {
-                  resolve();
-                })
-              }
-              //if we don't have key then add it
-              else {
-                db.ref('master').child('urlKeyMap').once('value', snapshot2 => {
-                  const urlKeyMap = (snapshot2.val() || {});
-                  if (urlKeyMap && !(urlKey in urlKeyMap)) {
+            db.ref('master/costMap/' + urlKey).once('value', snapshot => {
+              createdDt = new Date();
+              const node = snapshot.val();
+              const costMapUsers = node;
+              Object.keys(costMapUsers).map((e, i) => {
+                self.payeeModel.push([]);
+                const currName = e;
+                const entry = costMapUsers[e];
+                let costArr;
+                //if the entry costs node is false then make costArr a blank array
+                if(!entry.costs || (entry.costs && entry.costs.includes(false))) {
+                  costArr = [];
+                }
+                else {
+                  costArr = entry.costs.map((e, i2) => {
+                    //update payeeModel; if we don't have payees in the db just make it a blank array
+                    self.payeeModel[i][i2] = Object.keys(e.payees || {});
 
-                    const prom1 = db.ref().child('/master/urlKeyMap/' + urlKey).set({users: false});
-                    const prom2 = db.ref().child('/master/costMap/' + urlKey).set(false);
-                    Promise.all([prom1, prom2]).then(() => {
-                      resolve();
-                    });
-
-                  }
-                  //if we're here then we have data for this urlKey so populate model
-                  else {
-                    createdDt = new Date();
-                    const node = snapshot.val();
-                    self.commaNames = node.urlKeyMap[urlKey].users.join(',');
-                    const costMapUsers = node.costMap[urlKey];
-                    Object.keys(costMapUsers).map((e, i) => {
-                      self.payeeModel.push([]);
-                      const currName = e;
-                      const entry = costMapUsers[e];
-                      let costArr;
-                      //if the entry costs node is false then make costArr a blank array
-                      if(!entry.costs || (entry.costs && entry.costs.includes(false))) {
-                        costArr = [];
-                      }
-                      else {
-                        costArr = entry.costs.map((e, i2) => {
-                          //update payeeModel; if we don't have payees in the db just make it a blank array
-                          self.payeeModel[i][i2] = Object.keys(e.payees || {});
-
-                          return Object.assign({}, {
-                            amount: e.amount,
-                            what: e.what,
-                            //payees is always costMap keys minus current user
-                            payees: Object.keys(costMapUsers).filter( item => item !== currName)
-                          }, {disabled: false});
-                        });
-                      }
-                      const obj = {name: e, id: e.trim().replace(/\s+/g, '') + i, costs: costArr};
-                      self.arrNames.push(obj);
-                    });
-                    resolve();
-
-                  }
-                })
-              }
+                    return Object.assign({}, {
+                      amount: e.amount,
+                      what: e.what,
+                      //payees is always costMap keys minus current user
+                      payees: Object.keys(costMapUsers).filter( item => item !== currName)
+                    }, {disabled: false});
+                  });
+                }
+                const obj = {name: e, id: e.trim().replace(/\s+/g, '') + i, costs: costArr};
+                self.arrNames.push(obj);
+              });
+              resolve();
             });
+
+
           });
         }
 
-
-
       }
-
-
-
-
 
 
     },

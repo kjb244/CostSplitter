@@ -1,8 +1,9 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-import UserInit from '@/components/UserInit'
-import Calculate from '@/components/Calculate'
-import LoginSignup from '@/components/LoginSignup'
+import Vue from 'vue';
+import Router from 'vue-router';
+import UserInit from '@/components/UserInit';
+import Calculate from '@/components/Calculate';
+import LoginSignup from '@/components/LoginSignup';
+import People from '@/components/People';
 import firebase from 'firebase'
 
 Vue.use(Router)
@@ -17,6 +18,14 @@ let router = new Router({
       path: '/',
       name: 'loginsignup',
       component: LoginSignup
+    },
+    {
+      path: '/people',
+      name: 'people',
+      component: People,
+      meta: {
+        requiresAuth: true
+      }
     },
     {
       path: '/calculate',

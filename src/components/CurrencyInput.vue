@@ -26,11 +26,14 @@
           parts[1] = this.padZeros(parts[1]);
           this.inputModel = `${parts[0]}.${parts[1]}`;
         }
-        this.$emit('valueMap', {value: this.inputModel, indexes: this.currencyprops.indexes});
 
       },
       valueChange: function(){
         this.inputModel =  this.currencyRules(this.inputModel);
+        setTimeout(() => {
+          this.$emit('valueMap', {value: this.inputModel, indexes: this.currencyprops.indexes} );
+          },50);
+
       },
       currencyRules: function(value){
         let valu = value || '';

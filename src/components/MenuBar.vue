@@ -1,13 +1,9 @@
 <template>
   <div class="master-container mb-4 mt-2">
-    <div v-show="show" class="inner-container" v-bind:class="{open: menuOpen}">
-      <a href="javascript:void(0);" v-on:click="cogClick()">
-        <i class="fa fa-cog" aria-hidden="true"></i>
-      </a>
-      <a href="javascript:void(0);" v-on:click="signoutClick()">Logout</a>
-      <a href="javascript:void(0);" v-on:click="gobackClick()">Go Back</a>
-    </div>
-
+    <button type="button" class="btn btn-outline-success btn-sm" v-bind:class="{active: activeClick.people}" :disabled="!enable.people" v-on:click="peopleClick()">People</button>
+    <button type="button" class="btn btn-outline-success btn-sm" :disabled="!enable.expenses" v-bind:class="{active: activeClick.expenses}" v-on:click="expensesClick()">Expenses</button>
+    <button type="button" class="btn btn-outline-success btn-sm" :disabled="!enable.pay" v-bind:class="{active: activeClick.pay}" v-on:click="payClick()">Pay</button>
+    <button :disabled="!enable.people"  type="button" class="btn btn-outline-success btn-sm" v-on:click="signOutClick()">Logout</button>
   </div>
 </template>
 
@@ -15,7 +11,6 @@
 <script>
 
   import firebase from 'firebase'
-  require('font-awesome/css/font-awesome.css');
 
 
   export default {
@@ -23,16 +18,39 @@
     props: ['props'],
     data(){
       return{
-        menuOpen: false,
-        show: true,
-        propsLocal: this.props || {}
+        activeClick: {
+          people: false,
+          expenses: false,
+          pay: false
+        },
+        enable: {
+          people: false,
+          expenses: false,
+          pay: false
+        }
+
       }
     },
     methods: {
-      cogClick: function(){
-        this.menuOpen = !this.menuOpen;
+      clicksToFalse: function(attr){
+        Object.keys(this.activeClick).map((e)=> {
+          this.activeClick[e] = false;
+        });
+        this.activeClick[attr] = true;
       },
-      signoutClick: function(){
+      peopleClick: function(){
+        this.clicksToFalse('people');
+        this.$router.replace({name: 'people', query: {urlKey: this.$route.query.urlKey}});
+      },
+      expensesClick: function(){
+        this.clicksToFalse('expenses');
+        this.$router.replace({name: 'users', query: {urlKey: this.$route.query.urlKey}});
+      },
+      payClick: function(){
+        this.clicksToFalse('pay');
+        this.$router.replace({name: 'calculate', query: {urlKey: this.$route.query.urlKey}});
+      },
+      signOutClick: function(){
         firebase.auth().signOut()
           .then(() => {
             this.$router.replace('/');
@@ -40,16 +58,19 @@
           .catch((error) => {
             // An error happened
           });
-      },
-      gobackClick: function(){
-        if(this.propsLocal.goBackLogic){
-          this.propsLocal.goBackLogic();
-        }
-
       }
     },
     mounted: function(){
-
+      const self = this;
+      const href = window.location.href;
+      if(href.includes('people')){
+        this.activeClick.people = true;
+      }
+      this.$root.$on('enable', (val) => {
+        Object.keys(val).map((e) => {
+          self.enable[e] = val[e];
+        })
+      });
     }
 
   }
@@ -58,29 +79,9 @@
 <style scoped>
 
   .master-container{
-    position:relative;
-    height: 30px;
-  }
-  .inner-container{
     display: flex;
-    align-items: center;
-    position:absolute;
-    top: 0;
-    right: -135px;
-    transition: all .5s ease-in;
+    justify-content: space-evenly;
   }
 
-  .inner-container.open{
-    right: 0;
-  }
-
-  .inner-container a:nth-child(n+2){
-    margin-left: 10px;
-  }
-
-  i{
-    font-size: 20px;
-    color: black;
-  }
 
 </style>
