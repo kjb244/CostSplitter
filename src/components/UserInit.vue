@@ -126,14 +126,7 @@
         const obj = type === 'what' ? {what: cost.what} : {amount: cost.amount};
         db.ref().child(`/master/costMap/${urlKey}/${name}/costs/${index2}`).update(obj);
       },
-      dbRemoveAllListeners: function(){
-        const db = firebase.database();
-        const urlKey = this.$route.query.urlKey;
-        this.arrNames.map((e)=> {
-          db.ref(`master/costMap/${urlKey}/${e.name}/costs`).off();
-        });
 
-      },
       currencyNodeChange: function(obj){
         const indexes = obj.indexes;
         const value = obj.value;
@@ -239,7 +232,7 @@
         const firstPos = self.arrNames.findIndex(e => e.name === name);
         const currObj = self.arrNames.find(e => e.name === name);
         let payees = self.arrNames.map(e => e.name).filter((e) => e !== name);
-
+        if(!(val && val.costs)) return false;
         val.costs = val.costs.filter(e => e !== false);
 
 

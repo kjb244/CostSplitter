@@ -53,13 +53,17 @@
         let names = Object.keys(inputData);
         finalObj = names.reduce((ccAccum, ccVal, i)=>{
           const currName = ccVal;
-          const currNode = inputData[currName];
+          let currNode = inputData[currName];
           ccAccum[currName] = {};
           ccAccum[currName].payees = names.filter(e => e !== currName)
             .reduce((accum, val) => {
               accum[val] = 0;
               return accum;
             },{});
+          if(currNode === false){
+            currNode = {costs:[]};
+
+          }
           currNode.costs.map((cost, j) => {
             const payees = Object.keys(cost.payees || {});
             const people = payees.length + 1;
