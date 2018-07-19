@@ -1,20 +1,35 @@
 <template>
-  <input data-currency-input type="text" v-on:input="valueChange()" v-on:blur="valueBlur()" :placeholder="currencyprops.placeholder" v-model="inputModel" >
+  <md-field>
+    <label>{{currencyprops.placeholder}}</label>
+    <md-input :disabled="disabled" data-currency-input type="text" v-on:input="valueChange()" v-on:blur="valueBlur()" v-model="inputModel" ></md-input>
+  </md-field>
+
 </template>
 
 
 <script>
+  import Vue from 'vue'
+
+  import { MdField } from 'vue-material/dist/components'
+  import 'vue-material/dist/vue-material.min.css'
+  import 'vue-material/dist/theme/default.css'
+  Vue.use(MdField);
+
   export default {
     name: 'currencyinput',
     props: ['currencyprops'],
     data(){
       return{
         inputModel: this.currencyprops.value || '',
+        disabled: this.currencyprops.disabled || false,
       }
     },
     watch: {
       'currencyprops.value': function(newVal, oldVal){
         this.inputModel = newVal;
+      },
+      'currencyprops.disabled': function(newVal, oldVal){
+        this.disabled = newVal;
       }
     },
     methods: {
@@ -29,7 +44,10 @@
 
       },
       valueChange: function(){
-        this.inputModel =  this.currencyRules(this.inputModel);
+        const inp =  this.currencyRules(this.inputModel);
+        setTimeout(() => {
+          this.inputModel = inp;
+        },1);
         setTimeout(() => {
           this.$emit('valueMap', {value: this.inputModel, indexes: this.currencyprops.indexes} );
           },50);
@@ -88,9 +106,6 @@
 </script>
 
 <style scoped>
-  input{
-    text-indent: 10px;
-  }
 
 
 </style>

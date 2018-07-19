@@ -31,13 +31,7 @@ module.exports = {
     }
   },
   plugins: [
-    new webpack.ProvidePlugin({
-      $: 'jquery',
-      jquery: 'jquery',
-      'window.jQuery': 'jquery',
-      jQuery: 'jquery',
-      'Util': "exports-loader?Util!bootstrap/js/dist/util"
-    })
+
   ],
   module: {
     rules: [

@@ -1,16 +1,24 @@
 <template>
   <div class="master-container mb-4 mt-2">
-    <button type="button" class="btn btn-outline-success btn-sm" v-bind:class="{active: activeClick.people}" :disabled="!enable.people" v-on:click="peopleClick()">People</button>
-    <button type="button" class="btn btn-outline-success btn-sm" :disabled="!enable.expenses" v-bind:class="{active: activeClick.expenses}" v-on:click="expensesClick()">Expenses</button>
-    <button type="button" class="btn btn-outline-success btn-sm" :disabled="!enable.pay" v-bind:class="{active: activeClick.pay}" v-on:click="payClick()">Pay</button>
-    <button :disabled="!enable.people"  type="button" class="btn btn-outline-success btn-sm" v-on:click="signOutClick()">Logout</button>
+    <md-button class="md-primary" v-bind:class="{active: activeClick.people}" :disabled="!enable.people" v-on:click="peopleClick()">People</md-button>
+    <md-button class="md-primary" :disabled="!enable.expenses" v-bind:class="{active: activeClick.expenses}" v-on:click="expensesClick()">Expenses</md-button>
+    <md-button class="md-primary" :disabled="!enable.pay" v-bind:class="{active: activeClick.pay}" v-on:click="payClick()">Pay</md-button>
+    <md-button :disabled="!enable.people" class="md-primary" v-on:click="signOutClick()">Logout</md-button>
   </div>
 </template>
 
 
 <script>
 
-  import firebase from 'firebase'
+  import firebase from 'firebase';
+  import Vue from 'vue';
+
+
+  import { MdButton } from 'vue-material/dist/components'
+  import 'vue-material/dist/vue-material.min.css'
+  import 'vue-material/dist/theme/default.css'
+  Vue.use(MdButton);
+
 
 
   export default {
@@ -63,6 +71,7 @@
     mounted: function(){
       const self = this;
       const href = window.location.href;
+      console.log('mounted', href);
       if(href.includes('people')){
         this.activeClick.people = true;
       }
@@ -81,6 +90,19 @@
   .master-container{
     display: flex;
     justify-content: space-around;
+  }
+
+  button.active{
+    border: 1px solid #448aff;
+  }
+
+  @media (max-width: 390px){
+    .master-container{
+      flex-direction: column;
+    }
+    button{
+      margin: 0;
+    }
   }
 
 

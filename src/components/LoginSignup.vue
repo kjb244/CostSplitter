@@ -6,8 +6,11 @@
 
         <div v-show="showPhoneInput" class="phone-input">
           <phoneinput v-model="phone" :props="{placeholder: 'Enter phone number'}"></phoneinput>
-          <input type="text" class="mt-2" placeholder="(optional) previous url" v-model="previousUrl"/>
-          <button type="button" :disabled="loading.show || phone.length !== 12"  class="btn btn-primary mt-2 btn-block"  v-on:click="fbLoginPhone()">Submit</button>
+          <md-field>
+            <label>(optional) previous url</label>
+            <md-input type="text" v-model="previousUrl"></md-input>
+          </md-field>
+          <md-button :disabled="loading.show || phone.length !== 12"  class="md-raised md-primary"  v-on:click="fbLoginPhone()">Submit</md-button>
           <div class="loading-modal mt-3">
             <modaloverlay :modalprops="loading"></modaloverlay>
           </div>
@@ -17,8 +20,11 @@
         </div>
 
         <div v-show="!showPhoneInput" class="sms-input">
-          <input type="password" placeholder="enter code provided via text" v-model="code"/>
-          <button type="button"  class="btn btn-primary mt-2 btn-block"  v-on:click="confirmCode()">Submit Code</button>
+          <md-field>
+            <label>enter code provided via text</label>
+            <md-input type="password" v-model="code"></md-input>
+          </md-field>
+          <md-button class="md-raised md-primary" v-on:click="confirmCode()">Submit Code</md-button>
         </div>
 
 
@@ -31,11 +37,20 @@
 
 <script>
 
+  import Vue from 'vue'
   import firebase from 'firebase'
   import utils from'../utils/Utils'
   import phoneinput from './PhoneInput.vue';
   import modaloverlay from './ModalOverlay.vue';
   require('font-awesome/css/font-awesome.css');
+
+  import { MdField, MdCheckbox, MdButton } from 'vue-material/dist/components'
+  import 'vue-material/dist/vue-material.min.css'
+  import 'vue-material/dist/theme/default.css'
+  Vue.use(MdField);
+  Vue.use(MdCheckbox);
+  Vue.use(MdButton);
+
 
 
   export default {
@@ -130,6 +145,11 @@
   input{
     width: 100%;
     text-indent: 10px;
+  }
+
+  button{
+    width: 100%;
+    margin: 0;
   }
 
   .loading-modal{

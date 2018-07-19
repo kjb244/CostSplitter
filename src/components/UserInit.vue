@@ -4,44 +4,48 @@
     <div class="row">
 
       <div class="col-sm-12 mt-4">
-        <div id="accordion" v-show="arrNames.length>0">
-          <div class="card" v-for="(rec,index) in arrNames">
-            <div class="card-header" :id="'heading' + index">
-              <h5 class="mb-0">
-                <button class="btn btn-link" data-toggle="collapse" :data-target="'#' + rec.id" v-on:click="populatePayeeModelArr(index)">{{rec.name}}</button>
-              </h5>
-            </div>
-            <div :id="rec.id" class="collapse" data-parent="#accordion">
-              <div class="card-body">
-                <div class="row mb-3" v-for="(cost, index2) in rec.costs">
-                  <div class="col-sm-12">
-                    <input type="text" placeholder="for what" :disabled="cost.disabled" v-model="cost.what" v-on:change="dbOnChange('what',index,index2,cost)"/>
-                  </div>
-                  <div class="col-sm-12 mt-2">
-                    <currencyinput :currencyprops="{placeholder: currencyProps.placeholder, value: cost.amount, indexes: [index,index2]}" :disabled="cost.disabled"  v-model="cost.amount" v-on:valueMap="currencyNodeChange"></currencyinput>
 
-                  </div>
-                  <div class="col-sm-12 mt-2">
-                    <div class="checkbox-wrapper" v-for="(payee, index3) in cost.payees">
-                      <input type="checkbox" :id="'checkbox' + payee + index + index2" :value="payee" v-on:change="dbOnChangeCB(index, index2, payee)" v-model="payeeModel[index][index2]" :disabled="cost.disabled">
-                      <label :for="'checkbox' + payee + index + index2">{{payee}}</label>
+        <div v-if="arrNames.length">
+          <md-steppers md-vertical>
+            <div v-for="(rec, index) in arrNames">
+              <md-step :id="rec.id" :md-label="rec.name" v-on:click="populatePayeeModelArr(index)">
+                <div class="card-body">
+                  <div class="row mb-3" v-for="(cost, index2) in rec.costs">
+                    <div class="col-sm-12">
+                      <md-field>
+                        <label>for what</label>
+                        <md-input type="text" :disabled="cost.disabled"
+                                  v-model="cost.what" v-on:change="dbOnChange('what',index,index2,cost)">
+                        </md-input>
+                      </md-field>
+
 
                     </div>
+                    <div class="col-sm-12 mt-2">
+                      <currencyinput :currencyprops="{placeholder: currencyProps.placeholder, value: cost.amount, indexes: [index,index2], disabled: cost.disabled}"  v-model="cost.amount" v-on:valueMap="currencyNodeChange"></currencyinput>
 
+                    </div>
+                    <div class="col-sm-12 mt-2">
+                      <div class="checkbox-wrapper" v-for="(payee, index3) in cost.payees">
+                        <input type="checkbox" :id="'checkbox' + payee + index + index2" :value="payee" v-on:change="dbOnChangeCB(index, index2, payee)" v-model="payeeModel[index][index2]" :disabled="cost.disabled">
+                        <label :for="'checkbox' + payee + index + index2">{{payee}}</label>
+
+                      </div>
+
+                    </div>
+                  </div>
+                  <div class="row buttons-row">
+                    <div class="col-sm-12  buttons-column">
+                      <md-button class="md-raised md-primary" :disabled="addAnotherCostRow(index)" v-on:click="addCost(index)">Add</md-button>
+                      <md-button class="md-raised md-primary" :disabled="rec.costs.length === 0" v-on:click="removeCost(index)">Remove</md-button>
+                    </div>
                   </div>
                 </div>
-                <div class="row buttons-row">
-                  <div class="col-sm-12  buttons-column">
-                    <button class="btn btn-info" :disabled="addAnotherCostRow(index)" v-on:click="addCost(index)">Add</button>
-                    <button class="btn btn-info" :disabled="rec.costs.length === 0" v-on:click="removeCost(index)">Remove</button>
-                  </div>
-                </div>
-              </div>
-
+              </md-step>
             </div>
-
-          </div>
+          </md-steppers>
         </div>
+
       </div>
     </div>
   </div>
@@ -49,9 +53,17 @@
 
 
 <script>
+  import Vue from 'vue';
   import currencyinput from './CurrencyInput.vue';
   import utils from '../utils/Utils';
   import firebase from 'firebase';
+
+  import { MdField, MdSteppers, MdButton } from 'vue-material/dist/components'
+  import 'vue-material/dist/vue-material.min.css'
+  import 'vue-material/dist/theme/default.css'
+  Vue.use(MdField);
+  Vue.use(MdSteppers);
+  Vue.use(MdButton);
 
 
   export default {
@@ -367,25 +379,35 @@
     width: 100%;
   }
 
-  .card-body input[type="text"]{
-    width: 100%;
-  }
 
   .buttons-row > .buttons-column{
     display: flex;
+    flex-direction: column;
   }
 
-  .card-body .buttons-row .buttons-column button{
-    flex: 48%;
+  @media (max-width: 390px){
+    button{
+      margin-left: 0;
+      margin-right: 0;
+    }
   }
 
-  .card-body .buttons-row .buttons-column button:first-child{
-    margin-right: 2%;
+  @media (min-width: 391px){
+    .buttons-row > .buttons-column{
+      flex-direction: row;
+    }
+    .card-body .buttons-row .buttons-column button{
+      flex: 48%;
+    }
+
+    .card-body .buttons-row .buttons-column button:first-child{
+      margin-right: 2%;
+    }
   }
 
-  input{
-    text-indent: 10px;
-  }
+
+
+
 
 
 

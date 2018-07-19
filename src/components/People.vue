@@ -4,6 +4,7 @@
     <div class="row">
       <div class="col-sm-12">
         <input type="text" placeholder="person name" v-model="person"/>
+        <input type="text" class="mt-2" placeholder="username" v-model="payAccount"/>
         <button type="button"  class="btn btn-primary mt-2" :disabled="person.length === 0 || (peopleList.length > 0  && peopleList.includes(person))" v-on:click="add()">Add</button>
       </div>
       <div class="col-sm-12" v-show="peopleList.length > 0">
@@ -45,12 +46,13 @@
     data(){
       return{
         person: '',
+        payAccount: '',
         peopleList: []
       }
     },
     watch: {
       peopleList(val){
-        const enabled = val.length > 0 ? true: false;
+        const enabled = val.length > 1 ? true: false;
         this.$root.$emit('enable', {people: true, expenses: enabled, pay: enabled });
       }
 

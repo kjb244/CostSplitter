@@ -1,10 +1,20 @@
 <template>
-  <input data-phone-input type="tel" v-on:input="inputChange()" :placeholder="placeholder" v-model="inputModel" >
+  <md-field data-phone-input>
+    <label>{{placeholder}}</label>
+    <md-input type="tel" v-on:input="inputChange()" v-model="inputModel" ></md-input>
+  </md-field>
 
 </template>
 
 
 <script>
+  import Vue from 'vue'
+
+  import { MdField } from 'vue-material/dist/components'
+  import 'vue-material/dist/vue-material.min.css'
+  import 'vue-material/dist/theme/default.css'
+  Vue.use(MdField);
+
   export default {
     name: 'phoneinput',
     props: ['props'],
@@ -20,10 +30,12 @@
       }
     },
     methods: {
+
       inputChange: function(){
+
         let val = this.inputModel;
         val = val.replace(/[^0-9]+/g,'').substr(0,10);
-        this.inputModel = val.replace(/(\d{0,3})(\d{0,3})(\d{0,4})/g,((match,p1,p2,p3) => {
+        val = val.replace(/(\d{0,3})(\d{0,3})(\d{0,4})/g,((match,p1,p2,p3) => {
           p1 = p1 || '';
           p2 = p2 || '';
           p3 = p3 || '';
@@ -37,6 +49,9 @@
             return p1;
           }
         }));
+
+        setTimeout(() => this.inputModel = val,1);
+
 
 
       }
@@ -56,9 +71,6 @@
 </script>
 
 <style scoped>
-  input{
-    text-indent: 10px;
-  }
 
 
 </style>
