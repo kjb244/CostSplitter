@@ -53,7 +53,15 @@
     watch: {
       peopleList(val){
         const enabled = val.length > 1 ? true: false;
-        this.$root.$emit('enable', {people: true, expenses: enabled, pay: enabled });
+        this.$root.$emit('enable',
+          {active: 'people',
+            enabled: {
+              people: true,
+              expenses: enabled,
+              pay: enabled
+            }
+          }
+        );
       }
 
     },
@@ -203,8 +211,7 @@
 
     },
 
-    mounted: function(){
-
+    mounted: function() {
     }
   }
 </script>

@@ -75,10 +75,14 @@
       if(href.includes('people')){
         this.activeClick.people = true;
       }
+
       this.$root.$on('enable', (val) => {
-        Object.keys(val).map((e) => {
-          self.enable[e] = val[e];
-        })
+        Object.keys(val.enabled).map((e) => {
+          self.enable[e] = val.enabled[e];
+        });
+        if(val.active && val.active in self.activeClick){
+          self.activeClick[val.active] = true;
+        }
       });
     }
 

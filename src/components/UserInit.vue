@@ -369,6 +369,15 @@
     },
 
     mounted: function(){
+      this.$root.$emit('enable',
+        {active: 'expenses',
+          enabled: {
+            people: true,
+            expenses: true,
+            pay: true
+          }
+        }
+      );
 
     }
   }
