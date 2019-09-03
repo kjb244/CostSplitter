@@ -52,6 +52,7 @@
   import Vue from 'vue'
   import firebase from 'firebase'
   import utils from'../utils/Utils'
+  import { mapState, mapGetters, mapActions, mapMutations } from 'vuex';
   import phoneinput from './PhoneInput.vue';
   import modaloverlay from './ModalOverlay.vue';
   require('font-awesome/css/font-awesome.css');
@@ -94,9 +95,11 @@
       }
     },
     methods: {
+      ...mapActions([
+        'changeRoute'
+      ]),
+
       fbLoginPhone: function(){
-
-
 
         const appVerifier = this.firebaseData.recaptchaVerifier;
         this.loading.show = true;
@@ -108,7 +111,7 @@
             this.loading.show = false;
             this.firebaseData.confirmationResult = confirmationResult;
           }).catch(function (error) {
-            console.log(error);
+            console.log(error.message);
             // Error; SMS not sent
           })
 
@@ -177,7 +180,7 @@
           id = id.length ? id : utils.randomString(16);
           const prom =  this.writeUserToDb(id);
           prom.then(() => {
-            this.$router.replace({name: 'people', query: {urlKey: id} } );
+            this.changeRoute({route: 'people', query: {urlKey: id} } );
           });
 
       },
@@ -201,13 +204,19 @@
                 });
                 Promise.all(promiseArr).then(() => {
                   //if they don't have any other sessions that have data in then take to next screen
-                  if(!self.otherSessions.length){
-                    const dbKey = utils.randomString(16);
-                    const prom = self.writeUserToDb(dbKey);
-                    prom.then(() =>{
-                      self.$router.replace({name: 'people', query: {urlKey: dbKey} } );
-                    })
-                  }
+                  //for some reason we need a timeout here
+                  //possibly the array isn't getting updated until later then we think
+                  setTimeout(()=> {
+                    if(!self.otherSessions.length){
+                      const dbKey = utils.randomString(16);
+                      const prom = self.writeUserToDb(dbKey);
+                      prom.then(() =>{
+                        this.changeRoute({route: 'people', query: {urlKey: dbKey} } );
+
+                      })
+                    }
+                  },250);
+
                 });
 
 
@@ -222,8 +231,11 @@
                         }
                         resolve();
                       }
+                      else{
+                        resolve();
+                      }
                     });
-                  })
+                  });
                 }
 
               }
@@ -232,7 +244,8 @@
                 const dbKey = utils.randomString(16);
                 const prom = self.writeUserToDb(dbKey);
                 prom.then(() =>{
-                  self.$router.replace({name: 'people', query: {urlKey: dbKey} } );
+                  this.changeRoute({route: 'people', query: {urlKey: dbKey} } );
+
                 })
               }
 
@@ -241,7 +254,7 @@
           }
           //they put in key so just move them to next route with key
           else{
-            self.$router.replace({name: 'people', query: {urlKey: dbKey} } );
+            this.changeRoute({route: 'people', query: {urlKey: dbKey} } );
           }
 
 
@@ -258,6 +271,9 @@
 
     },
     computed:{
+      ...mapGetters([
+        'routeStatus'
+      ]),
 
     },
     mounted: function(){

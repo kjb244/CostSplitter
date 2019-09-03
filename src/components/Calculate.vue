@@ -125,17 +125,9 @@
           return e;
         }).reverse().join('') + partsDecimal;
       }
-    }        ,
+    },
     mounted: function(){
-      this.$root.$emit('enable',
-        {active: 'pay',
-          enabled: {
-            people: true,
-            expenses: true,
-            pay: true
-          }
-        }
-      );
+
 
     }
   }

@@ -33,6 +33,8 @@
 
   import firebase from 'firebase';
   require('font-awesome/css/font-awesome.css');
+  import { mapState, mapGetters, mapActions, mapMutations } from 'vuex';
+
 
 
 
@@ -52,20 +54,21 @@
     },
     watch: {
       peopleList(val){
-        const enabled = val.length > 1 ? true: false;
-        this.$root.$emit('enable',
-          {active: 'people',
-            enabled: {
-              people: true,
-              expenses: enabled,
-              pay: enabled
-            }
-          }
-        );
+        const peopleListGTOne = val.length > 1 ? true: false;
+        if(peopleListGTOne){
+          this.makeRoutesEnabled(['people','expenses','pay','logout']);
+        }
+        else {
+          this.makeRoutesEnabled(['people','logout']);
+        }
+
       }
 
     },
     methods: {
+      ...mapActions([
+        'makeRoutesEnabled'
+      ]),
       dbAdd: function(person){
         const db = firebase.database();
         const urlKey = this.$route.query.urlKey;
@@ -92,7 +95,7 @@
                   return accum;
                 },{});
                 db.ref().child(`/master/costMap/${urlKey}/${name}/costs/${i2}/payees`).set(obj);
-              };
+              }
             })
           })
         });

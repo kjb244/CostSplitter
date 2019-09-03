@@ -6,6 +6,8 @@ import router from './router'
 import 'bootstrap'
 import 'bootstrap/js/dist/collapse'
 import firebase from 'firebase'
+import store from './store'
+
 
 
 Vue.config.productionTip = false;
@@ -27,6 +29,7 @@ firebase.auth().onAuthStateChanged((user) => {
     new Vue({
       el: '#app',
       router,
+      store,
       components: { App },
       template: '<App/>'
     });

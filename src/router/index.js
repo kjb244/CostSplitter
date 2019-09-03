@@ -28,16 +28,16 @@ let router = new Router({
       }
     },
     {
-      path: '/calculate',
-      name: 'calculate',
+      path: '/pay',
+      name: 'pay',
       component: Calculate,
       meta: {
         requiresAuth: true
       }
     },
     {
-      path: '/users',
-      name: 'users',
+      path: '/expenses',
+      name: 'expenses',
       component: UserInit,
       meta: {
         requiresAuth: true

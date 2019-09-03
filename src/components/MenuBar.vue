@@ -1,19 +1,20 @@
 <template>
   <div class="master-container mb-4 mt-2">
-    <md-button class="md-primary" v-bind:class="{active: activeClick.people}" :disabled="!enable.people" v-on:click="peopleClick()">People</md-button>
-    <md-button class="md-primary" :disabled="!enable.expenses" v-bind:class="{active: activeClick.expenses}" v-on:click="expensesClick()">Expenses</md-button>
-    <md-button class="md-primary" :disabled="!enable.pay" v-bind:class="{active: activeClick.pay}" v-on:click="payClick()">Pay</md-button>
-    <md-button :disabled="!enable.people" class="md-primary" v-on:click="signOutClick()">Logout</md-button>
+    <md-button v-for="(value, name, index) in routeStatus"
+               :disabled="value.enabled === false"
+               v-bind:class="{active: value.active === true}"
+               v-bind:key="index"
+               v-on:click="tabClick(name)"
+               class="md-primary"
+               >{{value.name}}</md-button>
   </div>
 </template>
 
 
 <script>
 
-  import firebase from 'firebase';
   import Vue from 'vue';
-
-
+  import { mapState, mapGetters, mapActions, mapMutations } from 'vuex';
   import { MdButton } from 'vue-material/dist/components'
   import 'vue-material/dist/vue-material.min.css'
   import 'vue-material/dist/theme/default.css'
@@ -26,64 +27,33 @@
     props: ['props'],
     data(){
       return{
-        activeClick: {
-          people: false,
-          expenses: false,
-          pay: false
-        },
-        enable: {
-          people: false,
-          expenses: false,
-          pay: false
-        }
+
 
       }
     },
     methods: {
-      clicksToFalse: function(attr){
-        Object.keys(this.activeClick).map((e)=> {
-          this.activeClick[e] = false;
-        });
-        this.activeClick[attr] = true;
+      ...mapActions([
+        'changeRoute', 'logOut'
+      ]),
+      tabClick: function(name){
+        if(name.toUpperCase().includes('LOGOUT')){
+          this.logOut();
+        }
+        else{
+          this.changeRoute({route: name, query: {urlKey: this.$route.query.urlKey} } );
+
+        }
       },
-      peopleClick: function(){
-        this.clicksToFalse('people');
-        this.$router.replace({name: 'people', query: {urlKey: this.$route.query.urlKey}});
-      },
-      expensesClick: function(){
-        this.clicksToFalse('expenses');
-        this.$router.replace({name: 'users', query: {urlKey: this.$route.query.urlKey}});
-      },
-      payClick: function(){
-        this.clicksToFalse('pay');
-        this.$router.replace({name: 'calculate', query: {urlKey: this.$route.query.urlKey}});
-      },
-      signOutClick: function(){
-        firebase.auth().signOut()
-          .then(() => {
-            this.$router.replace('/');
-          })
-          .catch((error) => {
-            // An error happened
-          });
-      }
+
+    },
+    computed: {
+
+      ...mapGetters([
+        'routeStatus'
+      ]),
     },
     mounted: function(){
-      const self = this;
-      const href = window.location.href;
-      console.log('mounted', href);
-      if(href.includes('people')){
-        this.activeClick.people = true;
-      }
 
-      this.$root.$on('enable', (val) => {
-        Object.keys(val.enabled).map((e) => {
-          self.enable[e] = val.enabled[e];
-        });
-        if(val.active && val.active in self.activeClick){
-          self.activeClick[val.active] = true;
-        }
-      });
     }
 
   }
